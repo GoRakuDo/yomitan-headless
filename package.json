@@ -1,0 +1,45 @@
+{
+  "name": "@gorakudo/yomitan-headless",
+  "version": "0.1.0",
+  "description": "Headless Yomitan dictionary and parsing engine for Entei and desktop/mobile apps",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
+  "scripts": {
+    "prepare-vendor": "node scripts/prepare-vendor.mjs",
+    "prebuild": "npm run prepare-vendor",
+    "build": "node scripts/build.mjs",
+    "pretest": "npm run prepare-vendor",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "yomitan",
+    "yomichan",
+    "japanese",
+    "dictionary",
+    "headless"
+  ],
+  "author": "GoRakuDo",
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "esbuild": "^0.21.5",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  },
+  "dependencies": {
+    "hangul-js": "^0.2.6",
+    "kanji-processor": "^1.0.2"
+  }
+}
