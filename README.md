@@ -3,6 +3,9 @@
 Headless Yomitan engine for Entei / Tauri: Japanese text utilities, deinflection
 and the lookup `Translator`, with **no `chrome.*`, `document` or extension runtime**.
 
+> **Maintenance Commitment:**
+> We actively maintain this package for the sake of our **[Entei](https://github.com/GoRakuDo/entei)** immersion platform, keeping upstream Yomitan language/deinflection parity intact while ensuring zero DOM or browser-extension runtime dependencies.
+
 ## Usage
 
 ```ts
