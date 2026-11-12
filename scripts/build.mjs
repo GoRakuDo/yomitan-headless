@@ -21,8 +21,12 @@ await rm('dist', {recursive: true, force: true});
 await mkdir('dist', {recursive: true});
 
 await build({
-    entryPoints: ['src/index.ts'],
-    outfile: 'dist/index.js',
+    // Object entryPoints pin the OUTPUT names (`index.js`, `settings.js`) so
+    // they match `package.json#exports`. An array entryPoints list is mirrored
+    // as a directory tree instead (`settings/index.js`), which the exports map
+    // does not point at.
+    entryPoints: {index: 'src/index.ts', settings: 'src/settings/index.ts'},
+    outdir: 'dist',
     bundle: true,
     format: 'esm',
     platform: 'neutral',
@@ -57,4 +61,16 @@ const entryDeclaration = [
 
 await writeFile('dist/index.d.ts', entryDeclaration);
 
-console.log('build complete: dist/index.js + dist/index.d.ts');
+const settingsDeclaration = [
+    '/**',
+    ' * Type entry point for @gorakudo/yomitan-headless/settings.',
+    ' *',
+    ' * Settings types are DOM-free; no lib reference is required.',
+    ' */',
+    "export * from './types/src/settings/index.js';",
+    '',
+].join('\n');
+
+await writeFile('dist/settings.d.ts', settingsDeclaration);
+
+console.log('build complete: dist/index.js + dist/index.d.ts + dist/settings.js + dist/settings.d.ts');
