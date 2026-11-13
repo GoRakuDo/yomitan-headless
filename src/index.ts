@@ -58,7 +58,6 @@ export type {
     MatchType,
     ScanOptions,
     Tag,
-    TagMeta,
     TermEntry,
     TermExactRequest,
     TermGlossary,

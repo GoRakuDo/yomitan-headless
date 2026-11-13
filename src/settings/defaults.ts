@@ -288,6 +288,7 @@ export function createDefaultParsingOptions(): ParsingOptions {
         selectedParser: null,
         termSpacing: true,
         readingMode: 'hiragana',
+        useAllFrequencyDictionaries: false,
     };
 }
 

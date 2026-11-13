@@ -14,6 +14,10 @@
     "./settings": {
       "types": "./dist/settings.d.ts",
       "default": "./dist/settings.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
     }
   },
   "files": [
@@ -49,6 +53,7 @@
     "access": "public"
   },
   "devDependencies": {
+    "@types/node": "^22.20.5",
     "esbuild": "^0.21.5",
     "typescript": "^5.7.0",
     "vitest": "^2.1.0"

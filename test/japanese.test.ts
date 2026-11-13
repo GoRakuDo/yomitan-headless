@@ -7,7 +7,15 @@ import {
     distributeFurigana,
     distributeFuriganaInflected,
 } from '../src/index.js';
-import type {DictionaryDatabase, TermEntry} from '../src/index.js';
+import type {
+    DictionaryDatabase,
+    DictionarySummary,
+    KanjiEntry,
+    KanjiMeta,
+    Tag,
+    TermEntry,
+    TermMeta,
+} from '../src/index.js';
 
 /** Minimal in-memory dictionary database, structurally compatible with Yomitan's. */
 function createStubDatabase(): DictionaryDatabase {
@@ -21,26 +29,26 @@ function createStubDatabase(): DictionaryDatabase {
                 .map((entry, index) => toTermEntry(entry, termIndex + index, 'prefix')));
         },
         async findTermsExactBulk(termList): Promise<TermEntry[]> {
-            return termList.flatMap(({expression, reading, index}) => terms
-                .filter((entry) => entry.expression === expression && entry.reading === reading)
+            return termList.flatMap(({term, reading}, index) => terms
+                .filter((entry) => entry.expression === term && entry.reading === reading)
                 .map((entry) => toTermEntry(entry, index, 'exact')));
         },
         async findTermsBySequenceBulk(): Promise<TermEntry[]> {
             return [];
         },
-        async findTermMetaBulk() {
+        async findTermMetaBulk(): Promise<TermMeta[]> {
             return [];
         },
-        async findKanjiBulk() {
+        async findKanjiBulk(): Promise<KanjiEntry[]> {
             return [];
         },
-        async findKanjiMetaBulk() {
+        async findKanjiMetaBulk(): Promise<KanjiMeta[]> {
             return [];
         },
-        async findTagMetaBulk() {
+        async findTagMetaBulk(): Promise<(Tag | undefined)[]> {
             return [];
         },
-        async getDictionaryInfo() {
+        async getDictionaryInfo(): Promise<DictionarySummary[]> {
             return [];
         },
     };

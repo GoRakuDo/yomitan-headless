@@ -5,6 +5,17 @@
  * typedefs (`vendor/yomitan/types/ext/*.d.ts`). They are structurally
  * satisfied by Yomitan's real `DictionaryDatabase`, so a real instance can be
  * passed straight into `Translator` / `createTranslator()`.
+ *
+ * The shapes here follow what `vendor/yomitan/ext/js/language/translator.js`
+ * actually passes and reads, not the Dexie-flavoured typedefs:
+ *
+ * - `findTermsBulk(termList, dictionaries, matchType)` rows carry `index` = the
+ *   index of the query term in `termList` (that is how deinflections are
+ *   matched back to their source text).
+ * - `findTermsExactBulk` receives `{term, reading}` pairs.
+ * - `findTermsBySequenceBulk` receives `{query, dictionary}` pairs.
+ * - `findTagMetaBulk` receives `{query, dictionary}` pairs and must return a
+ *   positionally aligned array (`undefined` where nothing matched).
  */
 
 /** Set of enabled dictionary names. */
@@ -12,12 +23,15 @@ export type DictionarySet = Set<string>;
 
 export type MatchType = 'exact' | 'prefix' | 'suffix';
 
-export type MatchSource = 'term' | 'term-frequency' | 'kanji' | 'kanji-frequency';
+/** Value of a database row's `matchSource` — mirrors Yomitan's `MatchSource`. */
+export type MatchSource = 'term' | 'reading' | 'sequence';
 
 /** Opaque glossary node produced by the dictionary importer. */
 export type TermGlossary = unknown;
 
+/** A raw term row as produced by the database layer. */
 export type TermEntry = {
+    /** Index of the query term in the originating `termList`. */
     index: number;
     matchType: MatchType;
     matchSource: MatchSource;
@@ -30,9 +44,11 @@ export type TermEntry = {
     score: number;
     dictionary: string;
     id: number;
+    /** `-1` when the dictionary has no sequence numbers. */
     sequence: number;
 };
 
+/** A raw kanji row as produced by the database layer. */
 export type KanjiEntry = {
     index: number;
     character: string;
@@ -40,20 +56,25 @@ export type KanjiEntry = {
     kunyomi: string[];
     tags: string[];
     definitions: string[];
-    stats: {[name: string]: string};
+    stats: {[name: string]: string | number};
     dictionary: string;
 };
 
+/**
+ * A tag definition row. `Translator._createTag` / `_createKanjiStat` only read
+ * `category`, `notes`, `order` and `score`; everything else is defaulted.
+ */
 export type Tag = {
-    name: string;
+    name?: string;
     category: string;
     order: number;
     notes: string;
     score: number;
-    dictionary: string;
+    dictionary?: string;
 };
 
 export type TermMeta = {
+    /** Index of the queried term in the originating `termList`. */
     index: number;
     term: string;
     mode: 'freq' | 'pitch' | 'ipa';
@@ -69,33 +90,26 @@ export type KanjiMeta = {
     dictionary: string;
 };
 
-export type TagMeta = {
-    index: number;
-    tag: string;
-    mode: 'freq';
-    data: unknown;
-    dictionary: string;
-};
-
 /** Imported dictionary summary (subset of Yomitan's `dictionary-importer.Summary`). */
 export type DictionarySummary = {
     title: string;
     format: number;
     revision: string;
     sequenced?: boolean;
+    frequencyMode?: string;
     [key: string]: unknown;
 };
 
+/** `{term, reading}` pair used by exact term lookups. */
 export type TermExactRequest = {
-    index: number;
-    expression: string;
+    term: string;
     reading: string;
 };
 
+/** `{query, dictionary}` pair used by sequence and tag lookups. */
 export type DictionaryAndQueryRequest = {
-    index: number;
-    dictionary: string;
     query: string;
+    dictionary: string;
 };
 
 /**
@@ -106,11 +120,11 @@ export type DictionaryAndQueryRequest = {
 export type DictionaryDatabase = {
     findTermsBulk(termList: string[], dictionaries: DictionarySet, matchType: MatchType): Promise<TermEntry[]>;
     findTermsExactBulk(termList: TermExactRequest[], dictionaries: DictionarySet): Promise<TermEntry[]>;
-    findTermsBySequenceBulk(items: DictionaryAndQueryRequest[]): Promise<TermEntry[]>;
+    findTermsBySequenceBulk(items: {query: number; dictionary: string}[]): Promise<TermEntry[]>;
     findTermMetaBulk(termList: string[], dictionaries: DictionarySet): Promise<TermMeta[]>;
     findKanjiBulk(kanjiList: string[], dictionaries: DictionarySet): Promise<KanjiEntry[]>;
     findKanjiMetaBulk(kanjiList: string[], dictionaries: DictionarySet): Promise<KanjiMeta[]>;
-    findTagMetaBulk(items: DictionaryAndQueryRequest[]): Promise<TagMeta[]>;
+    findTagMetaBulk(items: {query: string; dictionary: string}[]): Promise<(Tag | undefined)[]>;
     getDictionaryInfo(): Promise<DictionarySummary[]>;
 };
 

@@ -6,10 +6,11 @@
  *    (`kanji-processor`), which native Node ESM refuses to load. Bundling
  *    inlines those JSON modules, so the file works in Node, Tauri and any other
  *    runtime without loader flags.
- * 2. `dist/types/**`   — declarations emitted by `tsc` for our sources *and* the
+ * 2. `dist/server.js`  — Node.js HTTP + Fetch API compatible Yomitan API server.
+ * 3. `dist/types/**`   — declarations emitted by `tsc` for our sources *and* the
  *    vendor modules they re-export, so consumers never need `allowJs` or the
  *    vendor checkout to type-check an import.
- * 3. `dist/index.d.ts` — the single entry declaration that `package.json#types`
+ * 4. `dist/index.d.ts` — the single entry declaration that `package.json#types`
  *    points at, re-exporting the emitted tree.
  */
 import {build} from 'esbuild';
@@ -32,6 +33,21 @@ await build({
     platform: 'neutral',
     // `neutral` ignores package main fields by default; the vendor shims
     // (`ext/lib/*.js`) re-export plain packages that only define `main`/`module`.
+    mainFields: ['module', 'main'],
+    target: 'es2022',
+    sourcemap: true,
+    logLevel: 'info',
+});
+
+// The server entry is bundled separately with `platform: 'node'` so `node:http`
+// / `node:net` stay external imports instead of failing resolution under
+// `neutral`. It gets the same inlined-vendor treatment as the main bundle.
+await build({
+    entryPoints: {server: 'src/server/index.ts'},
+    outdir: 'dist',
+    bundle: true,
+    format: 'esm',
+    platform: 'node',
     mainFields: ['module', 'main'],
     target: 'es2022',
     sourcemap: true,
@@ -73,4 +89,16 @@ const settingsDeclaration = [
 
 await writeFile('dist/settings.d.ts', settingsDeclaration);
 
-console.log('build complete: dist/index.js + dist/index.d.ts + dist/settings.js + dist/settings.d.ts');
+const serverDeclaration = [
+    '/**',
+    ' * Type entry point for @gorakudo/yomitan-headless/server.',
+    ' *',
+    ' * Node.js HTTP + Fetch API compatible Yomitan API server.',
+    ' */',
+    "export * from './types/src/server/index.js';",
+    '',
+].join('\n');
+
+await writeFile('dist/server.d.ts', serverDeclaration);
+
+console.log('build complete: dist/index.js + dist/index.d.ts + dist/settings.js + dist/settings.d.ts + dist/server.js + dist/server.d.ts');

@@ -266,6 +266,8 @@ export type ParsingOptions = {
     selectedParser: string | null;
     termSpacing: boolean;
     readingMode: ReadingMode;
+    /** Forces frequency/pitch/ipa metadata even in `simple` FindTermsMode. */
+    useAllFrequencyDictionaries: boolean;
 };
 
 // ---------------------------------------------------------------------------
